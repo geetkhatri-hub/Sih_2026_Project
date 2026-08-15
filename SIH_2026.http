@@ -1,0 +1,6 @@
+@SIH_2026_HostAddress = http://localhost:5002
+
+GET {{SIH_2026_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

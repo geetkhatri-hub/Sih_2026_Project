@@ -8,5 +8,6 @@ namespace SIH_2026.Data
         public DbSet<Provider> Providers { get; set; }
         public DbSet<Trip> Trips { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<Dispute> Dispute { get; set; }
     }
 }

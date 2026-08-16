@@ -9,7 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();                    
 
 builder.Services.AddDbContext<AppDbContext>(option =>
-    option.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    option.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<IQrService, QrService>();
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowFrontend", policy => {

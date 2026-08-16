@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+*.user
+.bash_history
+.gitconfig
+.lesshst

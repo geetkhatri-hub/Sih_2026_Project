@@ -1,0 +1,231 @@
+/* ==========================================================================
+   VeriYatra — shared stylesheet
+   In ASP.NET Core this becomes /wwwroot/css/site.css, linked from _Layout.cshtml.
+   In classic ASP.NET Web Forms it becomes a CSS file linked from your Master Page.
+   ========================================================================== */
+
+:root{
+  --navy:#161B33;
+  --navy-deep:#0E1224;
+  --navy-panel:#1F2748;
+  --paper:#FBF8F1;
+  --paper-dim:#F1EBDA;
+  --marigold:#E7A33E;
+  --marigold-dim:#B9832E;
+  --stamp-red:#B23A2E;
+  --border:#E4DCC8;
+  --text-dark:#231C12;
+  --text-dim:#6B5F49;
+  --text-light:#F3ECDC;
+  --radius:14px;
+  --shadow:0 10px 30px -12px rgba(22,27,51,.18);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'IBM Plex Sans', Arial, sans-serif;
+  background:var(--paper);
+  color:var(--text-dark);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+h1,h2,h3{
+  font-family:'Fraunces', Georgia, serif;
+  font-weight:600;
+  margin:0 0 8px;
+  color:var(--navy);
+}
+a{color:inherit;}
+.mono{font-family:'IBM Plex Mono', Consolas, monospace;}
+
+/* ---------- Layout shell (maps to Master Page / _Layout.cshtml) ---------- */
+.site-header{
+  background:var(--navy);
+  color:var(--text-light);
+  padding:0 24px;
+}
+.site-header .inner{
+  max-width:1080px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  height:64px;
+}
+.brand{
+  font-family:'Fraunces', serif;
+  font-weight:700;
+  font-size:20px;
+  letter-spacing:-0.01em;
+  color:var(--text-light);
+  text-decoration:none;
+  display:flex;align-items:center;gap:8px;
+}
+.brand .dot{color:var(--marigold);}
+.nav-links{display:flex;gap:22px;align-items:center;}
+.nav-links a{
+  color:var(--text-light);
+  text-decoration:none;
+  font-size:14px;
+  opacity:.82;
+  padding:6px 2px;
+  border-bottom:2px solid transparent;
+}
+.nav-links a:hover{opacity:1;}
+.nav-links a.active{opacity:1;border-color:var(--marigold);}
+.nav-links a.cta{
+  background:var(--marigold);
+  color:var(--navy-deep);
+  padding:8px 14px;
+  border-radius:9px;
+  font-weight:600;
+  opacity:1;
+  border:none;
+}
+
+main{
+  flex:1;
+  max-width:1080px;
+  width:100%;
+  margin:0 auto;
+  padding:36px 24px 60px;
+}
+
+.site-footer{
+  background:var(--navy-deep);
+  color:var(--text-dim);
+  text-align:center;
+  padding:20px;
+  font-size:12.5px;
+  font-family:'IBM Plex Mono', monospace;
+}
+
+/* ---------- Page header block ---------- */
+.page-head{margin-bottom:28px;}
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--marigold-dim);
+  margin-bottom:6px;
+}
+.page-head p{color:var(--text-dim);max-width:560px;line-height:1.55;font-size:14.5px;}
+
+/* ---------- Cards ---------- */
+.card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+/* ---------- Forms ---------- */
+.field{margin-bottom:16px;}
+.field label{
+  display:block;
+  font-size:12.5px;font-weight:600;
+  color:var(--text-dim);
+  margin-bottom:6px;
+  font-family:'IBM Plex Mono', monospace;
+  letter-spacing:.02em;
+}
+.field input,
+.field select{
+  width:100%;
+  padding:11px 12px;
+  border:1.5px solid var(--border);
+  border-radius:9px;
+  font-size:14.5px;
+  font-family:inherit;
+  background:var(--paper);
+  color:var(--text-dark);
+  outline:none;
+}
+.field input:focus,
+.field select:focus{border-color:var(--marigold-dim);}
+.field .hint{font-size:12px;color:var(--text-dim);margin-top:5px;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 18px;
+  border-radius:10px;
+  border:none;
+  font-size:14.5px;font-weight:600;
+  cursor:pointer;
+  font-family:'IBM Plex Sans', sans-serif;
+  text-decoration:none;
+}
+.btn-primary{background:var(--stamp-red);color:#fff;}
+.btn-primary:hover{background:#9A2F25;}
+.btn-secondary{background:var(--navy);color:var(--text-light);}
+.btn-secondary:hover{background:var(--navy-deep);}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text-dark);}
+.btn-ghost:hover{border-color:var(--stamp-red);color:var(--stamp-red);}
+.btn-block{width:100%;}
+.btn[disabled]{opacity:.5;cursor:not-allowed;}
+
+/* ---------- Tabs (used on login page) ---------- */
+.tabs{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+.tabs button{
+  flex:1;padding:11px;border:none;background:#fff;color:var(--text-dim);
+  font-family:'IBM Plex Sans', sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;
+}
+.tabs button.active{background:var(--navy);color:var(--text-light);}
+
+/* ---------- Badges / tags ---------- */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:100px;
+  font-family:'IBM Plex Mono', monospace;
+}
+.badge-success{background:rgba(46,125,50,.1);color:#2E7D32;}
+.badge-warning{background:rgba(231,163,62,.16);color:var(--marigold-dim);}
+.badge-tag{background:var(--paper-dim);color:var(--text-dim);}
+
+/* ---------- Spot / place cards (Discover page) ---------- */
+.spot-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:18px;
+}
+.spot-card{
+  border-radius:var(--radius);
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:#fff;
+  box-shadow:var(--shadow);
+}
+.spot-card .thumb{
+  height:140px;
+  background:linear-gradient(135deg, var(--navy), var(--navy-panel));
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-light);
+  font-family:'Fraunces', serif;
+  font-size:13px;
+  text-align:center;
+  padding:10px;
+}
+.spot-card .body{padding:14px;}
+.spot-card h3{font-size:16px;margin-bottom:4px;}
+.spot-card p{font-size:13px;color:var(--text-dim);line-height:1.5;margin:0 0 10px;}
+
+/* ---------- Result / info rows ---------- */
+.info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
+.info-row:last-child{border-bottom:none;}
+.info-row span:first-child{color:var(--text-dim);}
+.info-row span:last-child{font-family:'IBM Plex Mono', monospace;font-weight:500;}
+
+/* ---------- Two-column layout helper ---------- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media (max-width:720px){
+  .split{grid-template-columns:1fr;}
+  .nav-links{display:none;} /* swap for a real mobile menu once you build one */
+}
+
+/* ---------- Alerts ---------- */
+.alert{
+  padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;
+  font-family:'IBM Plex Mono', monospace;
+}
+.alert-error{background:rgba(178,58,46,.08);color:var(--stamp-red);border:1px solid rgba(178,58,46,.25);}
+.alert-success{background:rgba(46,125,50,.08);color:#2E7D32;border:1px solid rgba(46,125,50,.25);}

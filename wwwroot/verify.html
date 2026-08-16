@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Verify a Guide — VeriYatra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="inner">
+      <a href="discover.html" class="brand"><span class="dot">●</span> VeriYatra</a>
+      <nav class="nav-links">
+        <a href="discover.html">Discover</a>
+        <a href="verify.html" class="active">Verify a Guide</a>
+        <a href="fare-calculator.html">Fair Fare</a>
+        <a href="profile.html">Profile</a>
+        <a href="login.html" class="cta">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow">Digital Handshake</div>
+      <h1>Verify the person in front of you</h1>
+      <p>No booking needed. Point your camera at their QR code (simulated below), and we'll confirm your location and the moment, together.</p>
+    </div>
+
+    <div class="split">
+      <!-- ============ LEFT: Scan area ============ -->
+      <div class="card" id="scanCard" style="text-align:center;">
+
+        <!-- Real camera scanner (html5-qrcode) -->
+        <div id="reader" style="width:100%;max-width:260px;margin:10px auto 12px;border-radius:14px;overflow:hidden;display:none;"></div>
+        <div id="scanTarget" style="width:100%;max-width:220px;aspect-ratio:1;margin:10px auto 12px;border:2px dashed var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--text-dim);">▦</div>
+
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button class="btn btn-secondary" id="startCameraBtn" style="flex:1;">Scan with camera</button>
+          <button class="btn btn-ghost" id="stopCameraBtn" style="flex:1;display:none;">Stop camera</button>
+        </div>
+        <div id="cameraStatus" class="mono" style="font-size:11.5px;color:var(--text-dim);min-height:16px;margin-bottom:10px;"></div>
+
+        <!-- One-laptop testing fallback: paste the token shown/copied on guide-register.html -->
+        <div style="text-align:left;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;font-family:'IBM Plex Mono',monospace;">
+            Testing solo on one laptop? Paste the token instead
+          </label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="pastedToken" placeholder="Paste token from guide-register.html"
+              style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:12px;" />
+            <button class="btn btn-primary" id="verifyBtn">Verify</button>
+          </div>
+          <div class="hint" style="margin-top:6px;">Open <a href="guide-register.html" style="color:var(--stamp-red);">guide-register.html</a> in another tab, register a guide, hit "Copy token," then paste it here.</div>
+        </div>
+
+        <div id="locationStatus" style="margin-top:14px;font-size:12px;color:var(--text-dim);" class="mono"></div>
+      </div>
+
+      <!-- ============ RIGHT: Result ============ -->
+      <div class="card" id="resultCard">
+        <div id="resultEmpty" style="text-align:center;color:var(--text-dim);font-size:13.5px;padding:40px 10px;">
+          Your verified encounter will appear here.
+        </div>
+        <div id="resultFilled" style="display:none;">
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="display:inline-flex;width:80px;height:80px;border:4px solid var(--stamp-red);border-radius:50%;align-items:center;justify-content:center;color:var(--stamp-red);font-family:'Fraunces',serif;font-weight:700;font-size:11px;text-align:center;line-height:1.2;">VERIFIED</div>
+          </div>
+          <div class="info-row"><span>Guide</span><span id="rGuide"></span></div>
+          <div class="info-row"><span>License</span><span id="rLicense"></span></div>
+          <div class="info-row"><span>Time</span><span id="rTime"></span></div>
+          <div class="info-row"><span>Location</span><span id="rLoc"></span></div>
+          <div class="info-row"><span>Chain hash</span><span id="rHash"></span></div>
+          <a href="fare-calculator.html" class="btn btn-secondary btn-block" style="margin-top:16px;">Now check a fair fare →</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">VeriYatra — SIH 2026 Internal Hackathon prototype · practice build</footer>
+
+  <script>
+    // ---------------------------------------------------------------------
+    // NOTE FOR ASP.NET PORT:
+    // This page mirrors the full Digital Handshake demo you already have
+    // (VeriYatra_Digital_Handshake_Demo.html) but stripped down to a single
+    // role's view. In ASP.NET, "Tap to verify" becomes a POST to something
+    // like HandshakeController.Create, which does the real token/GPS/hash
+    // validation server-side and returns the record for this page to render.
+      // ---------------------------------------------------------------------
+    /*
+    const DEMO_GUIDE = { name: "Priya Sharma", license: "TG-DL-1123" };
+    const TAJ_FALLBACK = { lat: 27.1751, lng: 78.0421 };
+
+    function djb2(str){
+      let hash = 5381;
+      for (let i = 0; i < str.length; i++){
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
+        hash = hash & 0xFFFFFFFF;
+      }
+      return (hash >>> 0).toString(16).padStart(8, '0');
+    }
+
+    function getLocation(){
+      return new Promise((resolve) => {
+        const statusEl = document.getElementById('locationStatus');
+        if (!navigator.geolocation){
+          statusEl.textContent = 'Geolocation not supported — using demo location.';
+          resolve({ ...TAJ_FALLBACK, approx: true });
+          return;
+        }
+        statusEl.textContent = 'Requesting your location…';
+        const timer = setTimeout(() => {
+          statusEl.textContent = 'Location timed out — using demo location.';
+          resolve({ ...TAJ_FALLBACK, approx: true });
+        }, 3500);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            clearTimeout(timer);
+            statusEl.textContent = `GPS locked (±${Math.round(pos.coords.accuracy)}m)`;
+            resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, approx: false });
+          },
+          () => {
+            clearTimeout(timer);
+            statusEl.textContent = 'Permission denied — using demo location.';
+            resolve({ ...TAJ_FALLBACK, approx: true });
+          },
+          { enableHighAccuracy: true, timeout: 3000 }
+        );
+      });
+    }
+
+    document.getElementById('verifyBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('verifyBtn');
+      const scanTarget = document.getElementById('scanTarget');
+      btn.disabled = true;
+      btn.textContent = 'Scanning…';
+      scanTarget.style.borderColor = 'var(--marigold-dim)';
+
+      const loc = await getLocation();
+      await new Promise(r => setTimeout(r, 500));
+
+      const ts = Date.now();
+      const prevHash = '00000000'; // in the real app: last hash in the chain
+      const payload = DEMO_GUIDE.license + '|' + ts + '|' + loc.lat.toFixed(4) + ',' + loc.lng.toFixed(4) + '|' + prevHash;
+      const hash = djb2(payload);
+
+      document.getElementById('rGuide').textContent = DEMO_GUIDE.name;
+      document.getElementById('rLicense').textContent = DEMO_GUIDE.license;
+      document.getElementById('rTime').textContent = new Date(ts).toLocaleTimeString();
+      document.getElementById('rLoc').textContent = loc.approx ? 'approx. (demo)' : 'GPS-confirmed';
+      document.getElementById('rHash').textContent = '0x' + hash;
+
+      document.getElementById('resultEmpty').style.display = 'none';
+      document.getElementById('resultFilled').style.display = 'block';
+
+      btn.disabled = false;
+      btn.textContent = 'Verify again';
+      scanTarget.style.borderColor = 'var(--border)';
+    });
+    */
+      let html5QrCode;
+
+      document.getElementById('verifyBtn').addEventListener('click', async () => {
+          const btn = document.getElementById('verifyBtn');
+          btn.disabled = true;
+          btn.textContent = 'Opening camera…';
+
+          html5QrCode = new Html5Qrcode("scanTarget");
+          await html5QrCode.start(
+              { facingMode: "environment" },
+              { fps: 10, qrbox: 200 },
+              async (decodedText) => {
+                  await html5QrCode.stop();
+                  await completeHandshake(decodedText);
+              }
+          );
+      });
+
+      async function completeHandshake(qrPayload) {
+          const loc = await getLocation(); // reuse your existing getLocation() function
+
+          const res = await fetch('/api/trip/handshake', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ qrPayload, lat: loc.lat, lng: loc.lng })
+          });
+
+          if (!res.ok) {
+              document.getElementById('locationStatus').textContent = 'QR not recognized — ask the guide/driver to show their approved code.';
+              return;
+          }
+
+          const data = await res.json();
+          document.getElementById('rGuide').textContent = data.name;
+          document.getElementById('rTime').textContent = new Date(data.scannedAt).toLocaleTimeString();
+          document.getElementById('resultEmpty').style.display = 'none';
+          document.getElementById('resultFilled').style.display = 'block';
+
+          // Save the verified trip ID for the review/price-check step
+          sessionStorage.setItem('veriyatra_trip_id', data.id);
+      }
+  </script>
+</body>
+</html>

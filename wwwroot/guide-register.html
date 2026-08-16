@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guide Registration — VeriYatra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="inner">
+      <a href="discover.html" class="brand"><span class="dot">●</span> VeriYatra</a>
+      <nav class="nav-links">
+        <a href="discover.html">Discover</a>
+        <a href="verify.html">Verify a Guide</a>
+        <a href="fare-calculator.html">Fair Fare</a>
+        <a href="guide-register.html" class="active">Guide Portal</a>
+        <a href="login.html" class="cta">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow">For licensed guides</div>
+      <h1>Register &amp; get your verified badge</h1>
+      <p>Enter your official license details once — we check them against the guide registry and issue you a rotating QR code travelers can scan to verify you on the spot.</p>
+    </div>
+
+    <div class="split">
+      <!-- ============ LEFT: Registration form ============ -->
+      <div class="card" id="registerCard">
+        <h2 style="font-size:18px;">Guide details</h2>
+        <div id="regAlert"></div>
+        <form id="registerForm">
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input type="text" id="fullName" placeholder="e.g. Priya Sharma" required />
+          </div>
+          <div class="field">
+            <label for="license">Guide license number</label>
+            <input type="text" id="license" placeholder="e.g. TG-DL-1123" required />
+            <div class="hint">Try <b class="mono">TG-DL-1123</b> for a demo approval, or any other value to see a rejection.</div>
+          </div>
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category">
+              <option>Regional Level Guide</option>
+              <option>State Level Guide</option>
+              <option>Monument-Specific Guide</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Verify &amp; register</button>
+        </form>
+      </div>
+
+      <!-- ============ RIGHT: ID card + QR ============ -->
+      <div class="card" id="qrCard" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+        <div id="qrEmptyState" style="color:var(--text-dim);font-size:13.5px;padding:30px 10px;">
+          Your verified badge and QR code will appear here once your license is confirmed.
+        </div>
+        <div id="qrResult" style="display:none;width:100%;">
+          <div style="background:var(--navy);color:var(--text-light);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left;">
+            <div id="idName" style="font-family:'Fraunces',serif;font-size:18px;font-weight:600;"></div>
+            <div id="idLicense" class="mono" style="font-size:12px;color:var(--text-dim);margin-top:2px;"></div>
+            <span class="badge badge-warning" style="margin-top:10px;">✓ Verified</span>
+          </div>
+          <div id="qrcodeBox" style="width:150px;height:150px;margin:0 auto;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;"></div>
+          <p class="mono" style="font-size:11.5px;color:var(--text-dim);margin-top:10px;">
+            Refreshes every 20s — <span id="secLeft">20s</span> left
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">VeriYatra — SIH 2026 Internal Hackathon prototype · practice build</footer>
+
+  <script>
+    // ---------------------------------------------------------------------
+    // NOTE FOR ASP.NET PORT:
+    // SEED_REGISTRY below stands in for a real database table of licensed
+    // guides. In ASP.NET, the registerForm submit handler becomes a POST to
+    // something like GuideController.Register, which checks the license
+    // against your Guides table via Entity Framework and returns a token
+    // your page uses to render the QR — same flow, just server-validated
+    // instead of checked in the browser like this practice version.
+    // ---------------------------------------------------------------------
+    /*
+      const SEED_REGISTRY = [
+      { license: "TG-DL-1123", category: "Regional Level Guide" },
+      { license: "TG-AG-0872", category: "Regional Level Guide" },
+      { license: "TG-JA-0456", category: "State Level Guide" }
+    ];
+    const TOKEN_LIFETIME_MS = 20000;
+    let guide = null;
+    let tokenIssuedAt = 0;
+
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('fullName').value.trim();
+      const license = document.getElementById('license').value.trim().toUpperCase();
+      const match = SEED_REGISTRY.find(g => g.license === license);
+      const alertBox = document.getElementById('regAlert');
+
+      if (!match) {
+        alertBox.innerHTML = `<div class="alert alert-error">License not found in registry — rejected. Try TG-DL-1123 for a demo approval.</div>`;
+        return;
+      }
+
+      alertBox.innerHTML = `<div class="alert alert-success">License verified against registry.</div>`;
+      guide = { name, license: match.license };
+
+      document.getElementById('qrEmptyState').style.display = 'none';
+      document.getElementById('qrResult').style.display = 'block';
+      document.getElementById('idName').textContent = name;
+      document.getElementById('idLicense').textContent = match.license + ' · ' + match.category;
+
+      rotateToken();
+      setInterval(tickCountdown, 250);
+    });
+
+    function rotateToken(){
+      const token = guide.license + '.' + Date.now() + '.' + Math.random().toString(36).slice(2,8);
+      tokenIssuedAt = Date.now();
+      const box = document.getElementById('qrcodeBox');
+      box.innerHTML = '';
+      new QRCode(box, { text: token, width: 132, height: 132, colorDark: "#161B33", colorLight: "#ffffff" });
+    }
+
+    function tickCountdown(){
+      if (!guide) return;
+      const elapsed = Date.now() - tokenIssuedAt;
+      const remaining = Math.max(0, TOKEN_LIFETIME_MS - elapsed);
+      document.getElementById('secLeft').textContent = Math.ceil(remaining / 1000) + 's';
+      if (elapsed >= TOKEN_LIFETIME_MS) rotateToken();
+    }*/
+      document.getElementById('registerForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const body = {
+              name: document.getElementById('fullName').value,
+              phone: "0000000000", // add a real phone input field if you have time
+              address: "N/A",
+              vehicalType: document.getElementById('category').value,
+              vehicalNumber: document.getElementById('license').value
+          };
+
+          const res = await fetch('/api/providers/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+          });
+          const data = await res.json();
+
+          document.getElementById('regAlert').innerHTML =
+              `<div class="alert alert-success">Registered! Status: ${data.verificationStatus}. Waiting for approval.</div>`;
+
+          // For the demo: immediately call the approve endpoint too, so you can show the QR live.
+          const approveRes = await fetch(`/api/providers/${data.id}/approve`, { method: 'POST' });
+          const approved = await approveRes.json();
+
+          document.getElementById('qrEmptyState').style.display = 'none';
+          document.getElementById('qrResult').style.display = 'block';
+          document.getElementById('idName').textContent = body.name;
+          document.getElementById('idLicense').textContent = body.vehicalNumber;
+
+          // The backend generates a real PNG QR image — just point an <img> at it.
+          document.getElementById('qrcodeBox').innerHTML =
+              `<img src="/api/providers/${approved.id}/qrcode" style="width:132px;height:132px;" />`;
+      });
+  </script>
+</body>
+</html>

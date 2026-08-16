@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fair Fare Calculator — VeriYatra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="inner">
+      <a href="discover.html" class="brand"><span class="dot">●</span> VeriYatra</a>
+      <nav class="nav-links">
+        <a href="discover.html">Discover</a>
+        <a href="verify.html">Verify a Guide</a>
+        <a href="fare-calculator.html" class="active">Fair Fare</a>
+        <a href="profile.html">Profile</a>
+        <a href="login.html" class="cta">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow">Government-standard pricing</div>
+      <h1>What should this ride actually cost?</h1>
+      <p>Distance-based fare estimate using published local transport-department rates — check it before you pay, not after.</p>
+    </div>
+
+    <div class="split">
+      <!-- ============ LEFT: Inputs ============ -->
+      <div class="card">
+        <h2 style="font-size:18px;">Trip details</h2>
+        <form id="fareForm">
+          <div class="field">
+            <label for="city">City</label>
+            <select id="city">
+              <option value="delhi">Delhi</option>
+            </select>
+            <div class="hint">Add more cities to this dropdown as your team sources verified rate data for each.</div>
+          </div>
+
+          <div class="field">
+            <label for="vehicle">Vehicle type</label>
+            <select id="vehicle">
+              <option value="auto">Auto-rickshaw</option>
+              <option value="taxi_non_ac">Taxi (non-AC)</option>
+              <option value="taxi_ac">Taxi (AC)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="distance">Distance (km)</label>
+            <input type="number" id="distance" min="0" step="0.1" placeholder="e.g. 6.5" required />
+            <div class="hint">In the real app, this is filled automatically from your Distance API call between pickup and drop-off — see the Fair-Fare Calculator section of your API plan.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Calculate fair fare</button>
+        </form>
+      </div>
+
+      <!-- ============ RIGHT: Result ============ -->
+      <div class="card" id="resultCard">
+        <div id="fareEmpty" style="text-align:center;color:var(--text-dim);font-size:13.5px;padding:40px 10px;">
+          Enter a distance to see the fair-fare estimate.
+        </div>
+        <div id="fareFilled" style="display:none;">
+          <div style="text-align:center;margin-bottom:18px;">
+            <div class="eyebrow" style="margin-bottom:2px;">Estimated fair fare</div>
+            <div id="fareAmount" style="font-family:'Fraunces',serif;font-size:38px;font-weight:700;color:var(--navy);"></div>
+          </div>
+          <div class="info-row"><span>Base fare (first <span id="baseKm"></span> km)</span><span id="baseAmt"></span></div>
+          <div class="info-row"><span>Rate after base</span><span id="perKmRate"></span></div>
+          <div class="info-row"><span>Distance charged</span><span id="chargedKm"></span></div>
+          <div class="info-row"><span>Source</span><span id="rateSource" style="text-align:right;"></span></div>
+          <div class="alert alert-error" style="margin-top:16px;">
+            Verify these figures against your city transport department's current notification before presenting them as authoritative — rates get revised periodically.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">VeriYatra — SIH 2026 Internal Hackathon prototype · practice build</footer>
+
+  <script>
+    // ---------------------------------------------------------------------
+    // NOTE FOR ASP.NET PORT:
+    // RATE_TABLE below is exactly the JSON structure suggested in "Your API
+    // Integration Plan" doc. In ASP.NET this becomes either a database table
+    // (Cities/Rates) or a strongly-typed config class, and the calculation
+    // below becomes a method in a FareService class your controller calls —
+    // e.g. FareService.CalculateFare(city, vehicle, distanceKm).
+      // ---------------------------------------------------------------------
+    /*
+    const RATE_TABLE = {
+      delhi: {
+        auto:         { base_fare: 30, base_km: 1.5, per_km: 11, source: "Delhi Transport Dept. — verify current notification" },
+        taxi_non_ac:  { base_fare: 30, base_km: 1.5, per_km: 17, source: "Delhi Transport Dept. — verify current notification" },
+        taxi_ac:      { base_fare: 30, base_km: 1.5, per_km: 20, source: "Delhi Transport Dept. — verify current notification" }
+      }
+    };
+
+    function calculateFairFare(city, vehicle, distanceKm){
+      const rate = RATE_TABLE[city] && RATE_TABLE[city][vehicle];
+      if (!rate) return null;
+      const chargeableKm = Math.max(0, distanceKm - rate.base_km);
+      const fare = rate.base_fare + chargeableKm * rate.per_km;
+      return {
+        fare: Math.round(fare),
+        base_fare: rate.base_fare,
+        base_km: rate.base_km,
+        per_km: rate.per_km,
+        chargeableKm: chargeableKm.toFixed(1),
+        source: rate.source
+      };
+    }
+
+    document.getElementById('fareForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const city = document.getElementById('city').value;
+      const vehicle = document.getElementById('vehicle').value;
+      const distance = parseFloat(document.getElementById('distance').value);
+
+      if (isNaN(distance) || distance < 0) return;
+
+      const result = calculateFairFare(city, vehicle, distance);
+      if (!result){
+        document.getElementById('fareEmpty').textContent = 'No rate data for this city/vehicle combination yet.';
+        return;
+      }
+
+      document.getElementById('fareEmpty').style.display = 'none';
+      document.getElementById('fareFilled').style.display = 'block';
+      document.getElementById('fareAmount').textContent = '₹' + result.fare;
+      document.getElementById('baseKm').textContent = result.base_km;
+      document.getElementById('baseAmt').textContent = '₹' + result.base_fare;
+      document.getElementById('perKmRate').textContent = '₹' + result.per_km + '/km';
+      document.getElementById('chargedKm').textContent = result.chargeableKm + ' km';
+      document.getElementById('rateSource').textContent = result.source;
+    });
+    */
+      async function checkPriceAgainstHistory(providerId, destination, quotedPrice) {
+          const res = await fetch(`/api/trip/price-check?providerId=${providerId}&destination=${encodeURIComponent(destination)}&quotedPrice=${quotedPrice}`);
+          return await res.json();
+      }
+
+      // after OCR extracts a number called `ocrPrice`:
+      const verdict = await checkPriceAgainstHistory(providerId, destinationValue, ocrPrice);
+      // verdict.verdict is "fair" | "high" | "overpriced" | "unknown" — use it to color the result red/yellow/green
+  </script>
+</body>
+</html>
